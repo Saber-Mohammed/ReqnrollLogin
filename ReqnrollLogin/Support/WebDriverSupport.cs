@@ -16,61 +16,95 @@ namespace ReqnrollLogin.Support
 {
     internal class WebDriverSupport
     {
-        private IWebDriver _driver;
+        //  private IWebDriver _driver;
+        public static ThreadLocal<IWebDriver> _driver = new();
+
         private static ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private Setup context;
-        private ScenarioContext _scenarioContext;
-        public WebDriverSupport(Setup context, ScenarioContext scenarioContext)
+        private readonly Setup _context;
+
+        public WebDriverSupport(Setup context)
         {
-            this.context = context;
-            _scenarioContext = scenarioContext;
+            _context = context;
         }
 
-        public IWebDriver Driver
+        // Get unique thread value for each thread
+        public IWebDriver GetDriver()
         {
-            get 
+            return _driver.Value;
+        }
+
+        //public IWebDriver Driver
+        //{
+        //    get 
+        //    {
+        //        if (_driver == null)
+        //        {
+        //            log.Info("Initializing WebDriver");
+
+        //            try
+        //            {
+        //                switch (context.Browser)
+        //                {
+        //                    case "Chrome":
+        //                        ChromeOptions chromeOptions = new ChromeOptions();
+        //                        chromeOptions.AddExcludedArgument("enable-automation");
+        //                        _driver = new ChromeDriver(chromeOptions);
+        //                        _driver.Manage().Window.Maximize();
+        //                        _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(Convert.ToInt16(context.ImplicitWait));
+        //                        break;
+
+        //                    case "Firefox":
+        //                        _driver = new FirefoxDriver();
+        //                        _driver.Manage().Window.Maximize();
+        //                        _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+
+        //                        break;
+        //                }
+
+        //            }
+        //            catch (Exception e)
+        //            {
+        //                log.Info("Failed to initialize WebDriver: " + e.Message);
+        //                throw new ArgumentException("Unsupported browser", e.Message);
+        //            }
+        //        }
+        //        return _driver;
+        //    }
+        //}
+
+        public IWebDriver InitializeWebBrowser()
+        {
+            switch (_context.Browser)
             {
-                if (_driver == null)
-                {
-                    log.Info("Initializing WebDriver");
+                case "Chrome":
+                    ChromeOptions chromeOptions = new ChromeOptions();
+                    chromeOptions.AddExcludedArgument("enable-automation");
+                    _driver.Value = new ChromeDriver(chromeOptions);
+                    GetDriver().Manage().Window.Maximize();
+                    GetDriver().Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(Convert.ToInt16(_context.ImplicitWait));
+                    break;
 
-                    try
-                    {
-                        switch (context.Browser)
-                        {
-                            case "Chrome":
-                                ChromeOptions chromeOptions = new ChromeOptions();
-                                chromeOptions.AddExcludedArgument("enable-automation");
-                                _driver = new ChromeDriver(chromeOptions);
-                                _driver.Manage().Window.Maximize();
-                                _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(Convert.ToInt16(context.ImplicitWait));
-                                break;
-
-                            case "Firefox":
-                                _driver = new FirefoxDriver();
-                                _driver.Manage().Window.Maximize();
-                                _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
-
-                                break;
-                        }
-
-                    }
-                    catch (Exception e)
-                    {
-                        log.Info("Failed to initialize WebDriver: " + e.Message);
-                        throw new ArgumentException("Unsupported browser", e.Message);
-                    }
-                }
-                return _driver;
+                case "Firefox":
+                    _driver.Value = new FirefoxDriver();
+                    GetDriver().Manage().Window.Maximize();
+                    GetDriver().Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+                    break;
             }
+            //ChromeOptions chromeOptions = new ChromeOptions();
+            //chromeOptions.AddExcludedArgument("enable-automation");
+            //_driver.Value = new ChromeDriver(chromeOptions);
+            //_driver.Value.Manage().Window.Maximize();
+            //_driver.Value.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(Convert.ToInt16(_context.ImplicitWait));
+            return GetDriver();
         }
         public void QuitDriver()
         {
             log.Info("Quiting WebDriver...");
             if (_driver != null)
             {
-                _driver.Quit();
-                _driver = null;
+                _driver.Value.Quit();
+                _driver.Value.Dispose();
+                _driver.Value = null;
             }
         }
     }

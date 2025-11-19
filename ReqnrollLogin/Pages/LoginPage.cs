@@ -14,13 +14,10 @@ namespace ReqnrollLogin.Pages
     {
         private IWebDriver _driver;
         private readonly WebDriverSupport _driverSupport;
-        private ScenarioContext _scenarioContext;
-        public LoginPage(WebDriverSupport driverSupport, ScenarioContext scenarioContext)
+        public LoginPage(WebDriverSupport driverSupport)
         {
             _driverSupport = driverSupport;
-            _driver = _driverSupport.Driver;
-            _scenarioContext = scenarioContext;
-
+            _driver = _driverSupport.GetDriver();
         }
         By usernameField = By.Id("username");
         By passwordField = By.Id("password");

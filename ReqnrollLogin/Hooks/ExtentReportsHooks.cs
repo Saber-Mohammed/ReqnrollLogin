@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ReqnrollProject1.Hooks
@@ -23,11 +24,22 @@ namespace ReqnrollProject1.Hooks
     {
         private static ExtentReports extent;
         private static ExtentTest feature;
-        private static ExtentTest scenario;
+        [ThreadStatic]private static ExtentTest scenario;
+
+        //// Example of creating threaded instances of ExtentReports
+        //public class TestReport
+        //{
+        //    private static ThreadLocal<ExtentReports> extentReports = ThreadLocal.withInitial(()-> new ExtentReports());
+
+        //    public static ExtentReports getExtent()
+        //    {
+        //        return extentReports.get();
+        //    }
+        //}
 
         //Define report path and file
         private static string reportPath = Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName, "ExtentReports");
-        private static string reportFile;// = Path.Combine(reportPath, "ExtentReports.html");
+        private static string reportFile;
         private static string fileName;
         private static IWebDriver driver;
         private readonly WebDriverSupport _driverSupport;
@@ -35,8 +47,7 @@ namespace ReqnrollProject1.Hooks
         public ExtentReportsHooks(WebDriverSupport webDriverSupport)
         {
             _driverSupport = webDriverSupport;
-            driver = _driverSupport.Driver;
-
+            driver = _driverSupport.InitializeWebBrowser();
         }
 
         public static void CaptureScreenShot()
@@ -97,12 +108,12 @@ namespace ReqnrollProject1.Hooks
         [AfterStep]
         public void AfterStep(ScenarioContext scenarioContext)
         {
+            //// If there are no execution errors add the nodes
             //Get Step Type information (When, Then, Given, And)
-            var stepType = ScenarioStepContext.Current.StepInfo.StepDefinitionType.ToString();
+            var stepType = scenarioContext.StepContext.StepInfo.StepDefinitionType.ToString();
 
             //Get Step Info
-            var stepInfo = ScenarioStepContext.Current.StepInfo.Text; ScenarioStepContext.Current.StepInfo.StepDefinitionType.ToString();
-
+            var stepInfo = scenarioContext.StepContext.StepInfo.Text;
 
             // If there are no execution errors add the nodes 
             if (scenarioContext.TestError == null)

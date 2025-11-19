@@ -16,7 +16,6 @@ namespace ReqnrollLogin.StepDefinitions
         private static ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private Setup _context;
         private LoginPage _loginPage;
-        //private IWebDriver _driver;
 
         public LoginPageFunctionalityStepDefinitions(Setup context, LoginPage loginPage)
         {
